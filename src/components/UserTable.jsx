@@ -1,85 +1,64 @@
-// src/components/UserTable.jsx
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
+
 export default function UserTable({ users, onRefresh }) {
- const [newEmail, setNewEmail] = useState('');
- const [newName, setNewName] = useState('');
- const [loading, setLoading] = useState(false);
- const [error, setError] = useState('');
- async function handleCreate(e) {
- e.preventDefault();
- setError('');
- setLoading(true);
- const { error } = await supabase
- .from('profiles')
- .insert([{ email: newEmail, full_name: newName, role: 'member' }]);
- if (error) { setError(error.message); }
- else { setNewEmail(''); setNewName(''); onRefresh(); }
- setLoading(false);
- }
- async function handleDelete(id) {
- if (!confirm('Supprimer cet utilisateur ?')) return;
- await supabase.from('profiles').delete().eq('id', id);
- onRefresh();
- }
- return (
- <div>
- {/* Formulaire de création */}
- <form onSubmit={handleCreate} style={{ display: 'flex', gap: '0.5rem',
- marginBottom: '1.5rem', flexWrap: 'wrap' }}>
- <input placeholder='Email' type='email' value={newEmail}
- onChange={e => setNewEmail(e.target.value)} required
-style={inputStyle} />
- <input placeholder='Nom complet' value={newName}
- onChange={e => setNewName(e.target.value)} style={inputStyle} />
- <button type='submit' disabled={loading} style={btnStyle}>
- {loading ? '...' : '+ Ajouter'}
- </button>
- </form>
- {error && <p style={{ color: 'red' }}>{error}</p>}
- {/* Tableau */}
- <table style={{ width: '100%', borderCollapse: 'collapse' }}>
- <thead>
- <tr style={{ background: '#1A8C82', color: 'white' }}>
- <th style={thStyle}>Email</th>
- <th style={thStyle}>Nom</th>
- <th style={thStyle}>Rôle</th>
- <th style={thStyle}>Créé le</th>
- <th style={thStyle}>Actions</th>
- </tr>
- </thead>
- <tbody>
- {users.map((u, i) => (
- <tr key={u.id} style={{ background: i % 2 === 0 ? '#F8FAFC' :
-'white' }}>
- <td style={tdStyle}>{u.email}</td>
- <td style={tdStyle}>{u.full_name || '—'}</td>
- <td style={tdStyle}>{u.role}</td>
- <td style={tdStyle}>{new
-Date(u.created_at).toLocaleDateString('fr-FR')}</td>
- <td style={tdStyle}>
- <button onClick={() => handleDelete(u.id)}
- style={{ background: '#DC2626', color: 'white', border:
-'none',
- padding: '0.25rem 0.75rem', borderRadius: '4px', cursor:
-'pointer' }}>
- Supprimer
- </button>
- </td>
- </tr>
- ))}
- </tbody>
- </table>
- {users.length === 0 && <p style={{ textAlign: 'center', color: '#94A3B8'
-}}>
- Aucun utilisateur pour l'instant.</p>}
- </div>
- );
+  const [newEmail, setNewEmail] = useState('');
+  const [newName, setNewName]   = useState('');
+  const [loading, setLoading]   = useState(false);
+  const [error, setError]       = useState('');
+
+  async function handleCreate(e) {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    const { error } = await supabase.from('profiles').insert([{ email: newEmail, full_name: newName, role: 'member' }]);
+    if (error) setError(error.message);
+    else { setNewEmail(''); setNewName(''); onRefresh(); }
+    setLoading(false);
+  }
+
+  async function handleDelete(id) {
+    if (!confirm('Supprimer cet utilisateur ?')) return;
+    await supabase.from('profiles').delete().eq('id', id);
+    onRefresh();
+  }
+
+  return (
+    <div>
+      {error && <p className="error-msg" style={{ marginBottom: '0.75rem' }}>{error}</p>}
+      <div className="table-wrapper">
+        <form className="table-add-row" onSubmit={handleCreate}>
+          <input className="input" placeholder="Email" type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} style={{ flex: 1, minWidth: 180 }} required />
+          <input className="input" placeholder="Nom complet" value={newName} onChange={e => setNewName(e.target.value)} style={{ flex: 1, minWidth: 150 }} />
+          <button className="btn btn-primary" type="submit" disabled={loading || !newEmail}>{loading ? '…' : '+ Ajouter'}</button>
+        </form>
+        {users.length > 0 ? (
+          <table className="data-table">
+            <thead>
+              <tr><th>Email</th><th>Nom</th><th>Rôle</th><th>Créé le</th><th></th></tr>
+            </thead>
+            <tbody>
+              {users.map(u => (
+                <tr key={u.id}>
+                  <td>{u.email}</td>
+                  <td>{u.full_name || <span style={{ color: 'var(--text-3)' }}>—</span>}</td>
+                  <td>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '0.2rem 0.6rem', borderRadius: 999, background: u.role === 'admin' ? 'var(--accent-bg)' : 'var(--bg-4)', color: u.role === 'admin' ? 'var(--accent)' : 'var(--text-3)' }}>
+                      {u.role}
+                    </span>
+                  </td>
+                  <td style={{ color: 'var(--text-2)' }}>{new Date(u.created_at).toLocaleDateString('fr-FR')}</td>
+                  <td><button className="btn btn-danger btn-sm" onClick={() => handleDelete(u.id)}>Supprimer</button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p style={{ textAlign: 'center', color: 'var(--text-3)', padding: '3rem 1rem', fontSize: '0.875rem' }}>
+            Aucun utilisateur pour l'instant.
+          </p>
+        )}
+      </div>
+    </div>
+  );
 }
-const thStyle = { padding: '0.75rem 1rem', textAlign: 'left' };
-const tdStyle = { padding: '0.75rem 1rem', borderBottom: '1px solid #E2E8F0' };
-const inputStyle = { padding: '0.5rem 0.75rem', border: '1px solid #CBD5E1',
- borderRadius: '6px', fontSize: '0.9rem' };
-const btnStyle = { padding: '0.5rem 1rem', background: '#1A8C82', color:
-'white',
- border: 'none', borderRadius: '6px', cursor: 'pointer' };
