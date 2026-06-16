@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
+import Navbar from '../components/Navbar';
 
-export default function ProfilePage({ session }) {
+export default function ProfilePage({ session, dark, onToggleDark }) {
   const user = session.user;
   const initials = (user.user_metadata?.full_name || user.email || '?')
     .split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
@@ -49,6 +50,8 @@ export default function ProfilePage({ session }) {
   }
 
   return (
+    <div className="page">
+    <Navbar session={session} dark={dark} onToggleDark={onToggleDark} />
     <main className="page-main">
       <div className="page-header">
         <div>
@@ -109,5 +112,6 @@ export default function ProfilePage({ session }) {
         </div>
       </div>
     </main>
+    </div>
   );
 }
