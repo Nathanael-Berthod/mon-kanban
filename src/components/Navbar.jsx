@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
-export default function Navbar({ session }) {
+export default function Navbar({ session, dark, onToggleDark }) {
   const location = useLocation();
   const user     = session?.user;
   const initials = (user?.user_metadata?.full_name || user?.email || '?')
@@ -28,6 +28,14 @@ export default function Navbar({ session }) {
         </div>
       </div>
       <div className="navbar-right">
+        <button
+          className={`dark-toggle${dark ? ' on' : ''}`}
+          onClick={onToggleDark}
+          title={dark ? 'Mode clair' : 'Mode sombre'}
+          aria-label="Basculer le thème"
+        >
+          <div className="dark-toggle-thumb">{dark ? '🌙' : '☀️'}</div>
+        </button>
         <span className="navbar-email">{user?.email}</span>
         <Link to="/profile">
           <div className="navbar-avatar">

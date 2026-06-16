@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 
-export default function TaskForm({ boardId, onCreated, onClose, session }) {
+export default function TaskForm({ boardId, onCreated, onClose, session, profiles = [] }) {
   const [title, setTitle]       = useState('');
   const [description, setDesc]  = useState('');
   const [status, setStatus]     = useState('todo');
   const [priority, setPriority] = useState('medium');
   const [categoryId, setCatId]  = useState('');
   const [dueDate, setDueDate]   = useState('');
+  const [assignedTo, setAssignedTo] = useState('');
   const [categories, setCategories] = useState([]);
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState('');
@@ -23,9 +24,15 @@ export default function TaskForm({ boardId, onCreated, onClose, session }) {
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
     const { error } = await supabase.from('tasks').insert([{
-      title: title.trim(), description: description.trim() || null,
-      status, priority, board_id: boardId,
-      category_id: categoryId || null, due_date: dueDate || null, created_by: user.id,
+      title: title.trim(),
+      description: description.trim() || null,
+      status,
+      priority,
+      board_id: boardId,
+      category_id: categoryId || null,
+      due_date: dueDate || null,
+      assigned_to: assignedTo || null,
+      created_by: user.id,
     }]);
     setLoading(false);
     if (error) { setError(error.message); return; }
@@ -91,6 +98,15 @@ export default function TaskForm({ boardId, onCreated, onClose, session }) {
               <label className="field-label">Échéance</label>
               <input className="input" type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
             </div>
+            {profiles.length > 0 && (
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label className="field-label">Assigner à</label>
+                <select className="input" value={assignedTo} onChange={e => setAssignedTo(e.target.value)}>
+                  <option value="">Non assigné</option>
+                  {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name || p.email}</option>)}
+                </select>
+              </div>
+            )}
           </div>
           <div className="form-actions">
             <button type="button" className="btn btn-secondary" onClick={onClose}>Annuler</button>

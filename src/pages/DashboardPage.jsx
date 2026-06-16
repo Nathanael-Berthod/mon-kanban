@@ -3,11 +3,13 @@ import { supabase } from '../lib/supabase';
 import UserTable from '../components/UserTable';
 import TaskList  from '../components/TaskList';
 import Navbar    from '../components/Navbar';
+import BoardSelector from '../components/BoardSelector';
 
-export default function DashboardPage({ session }) {
+export default function DashboardPage({ session, dark, onToggleDark }) {
   const [users, setUsers]     = useState([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab]         = useState('tasks');
+  const [boards, setBoards]   = useState([]);
   const [boardId, setBoardId] = useState(null);
 
   async function fetchUsers() {
@@ -16,12 +18,20 @@ export default function DashboardPage({ session }) {
     setLoading(false);
   }
 
-  useEffect(() => { fetchUsers(); }, []);
+  async function fetchBoards() {
+    const { data } = await supabase.from('boards').select('id, name').order('created_at');
+    if (data && data.length > 0) {
+      setBoards(data);
+      setBoardId(prev => prev || data[0].id);
+    }
+  }
 
-  useEffect(() => {
-    supabase.from('boards').select('id').limit(1)
-      .then(({ data }) => { if (data?.[0]) setBoardId(data[0].id); });
-  }, []);
+  useEffect(() => { fetchUsers(); fetchBoards(); }, []);
+
+  function handleBoardCreated(board) {
+    setBoards(prev => [...prev, board]);
+    setBoardId(board.id);
+  }
 
   const userName = session?.user?.user_metadata?.full_name
     || session?.user?.email?.split('@')[0]
@@ -29,7 +39,7 @@ export default function DashboardPage({ session }) {
 
   return (
     <div className="page">
-      <Navbar session={session} />
+      <Navbar session={session} dark={dark} onToggleDark={onToggleDark} />
       <main className="page-main">
         <div className="page-header">
           <div>
@@ -46,10 +56,31 @@ export default function DashboardPage({ session }) {
           ))}
         </div>
 
-        {tab === 'tasks' && boardId && <TaskList boardId={boardId} session={session} />}
-        {tab === 'tasks' && !boardId && (
-          <div className="loading-state">Aucun tableau trouvé — créez-en un depuis le SQL Editor Supabase.</div>
+        {tab === 'tasks' && (
+          <>
+            {boards.length > 1 && (
+              <BoardSelector
+                boards={boards}
+                boardId={boardId}
+                onSelect={setBoardId}
+                onCreated={handleBoardCreated}
+              />
+            )}
+            {boards.length === 1 && (
+              <BoardSelector
+                boards={boards}
+                boardId={boardId}
+                onSelect={setBoardId}
+                onCreated={handleBoardCreated}
+              />
+            )}
+            {boardId
+              ? <TaskList boardId={boardId} session={session} />
+              : <div className="loading-state">Aucun tableau trouvé — créez-en un ci-dessus.</div>
+            }
+          </>
         )}
+
         {tab === 'users' && (
           loading
             ? <div className="loading-state"><div className="spinner" /> Chargement…</div>
