@@ -12,7 +12,7 @@ Projet réalisé dans le cadre du **BUT Réseaux & Télécommunications — Seme
 
 ## Démo en ligne
 
-➡️ **Application déployée :** https://mon-kanban-XXXX.vercel.app *(à remplacer par votre URL Vercel)*
+➡️ **Application déployée :** https://mon-kanban-nathanael-berthods-projects.vercel.app
 
 ## Stack technique
 
@@ -41,7 +41,7 @@ Projet réalisé dans le cadre du **BUT Réseaux & Télécommunications — Seme
 
 ```bash
 # 1. Cloner le dépôt
-git clone https://github.com/VOTRE-USERNAME/mon-kanban.git
+git clone https://github.com/Nathanael-Berthod/mon-kanban.git
 cd mon-kanban
 
 # 2. Installer les dépendances
